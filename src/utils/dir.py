@@ -1,4 +1,4 @@
-import rich_click as click
+from utils import click
 from pathlib import Path
 import os
 import sys

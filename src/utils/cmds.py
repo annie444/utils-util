@@ -2,8 +2,7 @@ import os
 import shutil
 from pathlib import Path
 from utils.dir import get_utils_dir
-
-import rich_click as click
+from utils import click
 
 __all__ = ["list_cmd", "error", "add_utility", "remove_utility"]
 
