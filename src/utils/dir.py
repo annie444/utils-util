@@ -136,12 +136,10 @@ def echo_added_to_rc(rc_file: Path, rc_add: str, already: bool) -> None:
             bold=True,
         )
     )
-    click.echo()
     click.echo("exec $SHELL")
-    click.echo()
     click.echo(click.style("or:", bold=True))
-    click.echo()
     click.echo(f"{rc_add}")
+    click.echo()
 
 
 def add_utils_to_path() -> None:
@@ -210,7 +208,7 @@ def add_utils_to_path() -> None:
         with click.open_file(rc_file, "r") as f:
             log.debug(f"Reading {rc_file} to check for existing utilities directory.")
             for line in f:
-                if rc_text.splitlines()[0] in line:
+                if "# ADDED BY 'utils' SCRIPT >>>" in line:
                     log.debug("Utilities directory already added to the shell config.")
                     echo_added_to_rc(rc_file, rc_add, True)
                     return

@@ -27,6 +27,7 @@ def list_cmd() -> None:
                     click.format_filename(item, shorten=True), fg="cyan", bold=True
                 )
             )
+    click.echo()
 
 
 def error(message: str) -> str:
@@ -69,9 +70,11 @@ def add_utility(utility: Path, copy: bool, update: bool) -> None:
     )
     echo += click.style(" to the utilities directory.", fg="cyan")
     click.echo(echo)
+    cmd = click.style(click.format_filename(utility, shorten=True), fg="cyan")
     click.echo(
-        f"You can now run it with: '{click.format_filename(utility, shorten=True)} ...args'"
+        f"You can now run it with: '{cmd} {click.style('...args', fg='yellow')}'"
     )
+    click.echo()
 
 
 def remove_utility(utility: str) -> None:
@@ -91,3 +94,4 @@ def remove_utility(utility: str) -> None:
     )
     echo += click.style(" from the utilities directory.", fg="cyan")
     click.echo(echo)
+    click.echo()

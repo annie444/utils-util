@@ -1,6 +1,6 @@
 [project]
 name = "utils"
-version = "0.1.0"
+version = "1.0.0"
 description = "Utility for managing user scripts and commands"
 readme = "README.md"
 authors = [{ name = "Annie Ehler", email = "annie.ehler.4@gmail.com" }]
