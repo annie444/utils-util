@@ -1,0 +1,17 @@
+import rich_click as click
+
+click.rich_click.STYLE_OPTION = "bold cyan"
+click.rich_click.STYLE_ARGUMENT = "bold cyan"
+click.rich_click.STYLE_COMMAND = "bold cyan"
+click.rich_click.STYLE_SWITCH = "bold green"
+click.rich_click.STYLE_METAVAR = "bold yellow"
+click.rich_click.STYLE_METAVAR_SEPARATOR = "dim"
+click.rich_click.STYLE_USAGE = "bold yellow"
+click.rich_click.STYLE_USAGE_COMMAND = "bold"
+click.rich_click.STYLE_HELPTEXT_FIRST_LINE = ""
+click.rich_click.STYLE_HELPTEXT = "dim"
+click.rich_click.STYLE_OPTION_DEFAULT = "dim"
+click.rich_click.STYLE_REQUIRED_SHORT = "red"
+click.rich_click.STYLE_REQUIRED_LONG = "dim red"
+click.rich_click.STYLE_OPTIONS_PANEL_BORDER = "dim"
+click.rich_click.STYLE_COMMANDS_PANEL_BORDER = "dim"

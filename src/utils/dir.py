@@ -1,9 +1,14 @@
-from utils import click
+from utils.click import click
+from utils.log import get_level, LOG_FORMAT
 from pathlib import Path
 import os
 import sys
+import logging
 
 __all__ = ["get_utils_dir", "utils_in_path", "create_utils_dir", "add_utils_to_path"]
+
+logging.basicConfig(level=get_level(), format=LOG_FORMAT)
+log = logging.getLogger(__name__)
 
 UTILS_DIR = Path.home() / ".local" / "share" / "utils" / "bin"
 
@@ -57,30 +62,38 @@ nuadd = f'$env.path ++= ["{UTILS_DIR}"]'
 
 def get_utils_dir() -> Path:
     """Get the utilities directory path."""
-    if not UTILS_DIR.exists() or not utils_in_path():
+    log.debug("Checking if utilities directory exists.")
+    if (not UTILS_DIR.exists()) or (not utils_in_path()):
+        log.debug("Utilities directory does not exist. Creating it.")
         create_utils_dir()
     return UTILS_DIR
 
 
 def utils_in_path() -> bool:
-    path_var = [p for p in os.environ.get("PATH", "").split(":") if p]
+    """Check if the utilities directory is in the PATH environment variable."""
+    log.debug("Checking if utilities directory is in PATH.")
+    path_var = [p for p in os.environ.get("PATH", "").split(":")]
     return str(UTILS_DIR) in path_var
 
 
 def create_utils_dir() -> None:
     """Create the utilities directory if it does not exist."""
+    log.debug("Creating utilities directory.")
     UTILS_DIR.mkdir(parents=True, exist_ok=True)
-    if utils_in_path():
+    log.debug(f"Utilities directory created at: {UTILS_DIR}")
+    if not utils_in_path():
         add_utils_to_path()
 
 
 def get_config_dir() -> Path:
     """Get the default user configuration directory."""
+    log.debug("Getting default user configuration directory.")
     xdg_config = os.environ.get("XDG_CONFIG_HOME")
-    if xdg_config:
+    if xdg_config is not None and xdg_config != "":
         return Path(xdg_config)
     else:
         # Fallback to the home directory if XDG_CONFIG_HOME is not set
+        log.debug("XDG_CONFIG_HOME not set. Using platform-specific default.")
         match sys.platform:
             case "linux":
                 return Path.home() / ".config"
@@ -89,6 +102,7 @@ def get_config_dir() -> Path:
             case "win32":
                 return Path.home() / "AppData" / "Roaming"
             case _:
+                # Unsupported platform, raise an exception
                 echo = click.style("Unsupported platform ", fg="red", bold=True)
                 echo += click.style(
                     f"{sys.platform}",
@@ -104,6 +118,8 @@ def get_config_dir() -> Path:
 
 
 def echo_added_to_rc(rc_file: Path, rc_add: str, already: bool) -> None:
+    """Echo a message indicating the utilities directory was added to the shell config."""
+    log.debug(f"Echoing message for rc file: {rc_file}")
     color1 = "yellow" if already else "cyan"
     color2 = "green" if already else "magenta"
     echo = click.style(
@@ -130,7 +146,9 @@ def echo_added_to_rc(rc_file: Path, rc_add: str, already: bool) -> None:
 
 def add_utils_to_path() -> None:
     """Add the utilities directory to the PATH environment variable."""
+    log.debug("Adding utilities directory to PATH.")
     shell = os.environ.get("SHELL", "")
+    log.debug(f"Detected shell: {shell}")
     if shell == "":
         echo = click.style("No shell detected.", fg="red", bold=True)
         echo += "\n"
@@ -146,6 +164,7 @@ def add_utils_to_path() -> None:
         raise click.ClickException(echo)
     else:
         shell = Path(shell).stem
+        log.debug(f"Normalized shell name: {shell}")
         rc_file: Path = Path()
         rc_text: str = ""
         rc_add: str = ""
@@ -181,15 +200,21 @@ def add_utils_to_path() -> None:
                 )
                 raise click.ClickException(echo)
         # Ensure the shell config exists
-        if not rc_file.exists() or not rc_file.is_file():
-            if not rc_file.parent.exists() or not rc_file.parent.is_dir():
+        log.debug(f"Ensuring the shell config file exists: {rc_file}")
+        if (not rc_file.exists()) or (not rc_file.is_file()):
+            log.debug(f"Creating the shell config file: {rc_file}")
+            if (not rc_file.parent.exists()) or (not rc_file.parent.is_dir()):
                 rc_file.parent.mkdir(parents=True, exist_ok=True)
             rc_file.touch()
+        log.debug(f"Checking if utilities directory is already in {rc_file}")
         with click.open_file(rc_file, "r") as f:
+            log.debug(f"Reading {rc_file} to check for existing utilities directory.")
             for line in f:
                 if rc_text.splitlines()[0] in line:
+                    log.debug("Utilities directory already added to the shell config.")
                     echo_added_to_rc(rc_file, rc_add, True)
                     return
+        log.debug("Utilities directory not found in the shell config. Adding it.")
         with click.open_file(rc_file, "a") as f:
             f.write(rc_text)
         echo_added_to_rc(rc_file, rc_add, False)

@@ -1,23 +1,12 @@
 from .cmds import list_cmd, add_utility, remove_utility
+from .click import click
+from .log import get_level, LOG_FORMAT
 
-import rich_click as click
 from pathlib import Path
+import logging
 
-click.rich_click.STYLE_OPTION = "bold cyan"
-click.rich_click.STYLE_ARGUMENT = "bold cyan"
-click.rich_click.STYLE_COMMAND = "bold cyan"
-click.rich_click.STYLE_SWITCH = "bold green"
-click.rich_click.STYLE_METAVAR = "bold yellow"
-click.rich_click.STYLE_METAVAR_SEPARATOR = "dim"
-click.rich_click.STYLE_USAGE = "bold yellow"
-click.rich_click.STYLE_USAGE_COMMAND = "bold"
-click.rich_click.STYLE_HELPTEXT_FIRST_LINE = ""
-click.rich_click.STYLE_HELPTEXT = "dim"
-click.rich_click.STYLE_OPTION_DEFAULT = "dim"
-click.rich_click.STYLE_REQUIRED_SHORT = "red"
-click.rich_click.STYLE_REQUIRED_LONG = "dim red"
-click.rich_click.STYLE_OPTIONS_PANEL_BORDER = "dim"
-click.rich_click.STYLE_COMMANDS_PANEL_BORDER = "dim"
+logging.basicConfig(level=get_level(), format=LOG_FORMAT)
+logger = logging.getLogger(__name__)
 
 
 @click.group(no_args_is_help=True, invoke_without_command=False)
@@ -35,12 +24,14 @@ def utils() -> None:
 @utils.command()
 def list() -> None:
     """List all available utilities"""
+    logger.debug("Executing 'list' command.")
     list_cmd()
 
 
 @utils.command(hidden=True)
 def ls() -> None:
     """Alias for 'list' command."""
+    logger.debug("Executing 'list' command.")
     list_cmd()
 
 
@@ -71,6 +62,7 @@ def add(utility: Path, force: bool = False, copy: bool = False) -> None:
     underscores with dashes, make the name lowercase, and ensuring the
     file is executable.
     """
+    logger.debug("Executing 'add' command.")
     add_utility(utility, copy, update=force)
 
 
@@ -95,6 +87,7 @@ def add(utility: Path, force: bool = False, copy: bool = False) -> None:
 @click.option("--copy", "-c", is_flag=True, help="Copy the file instead of move it.")
 def install(utility: Path, force: bool = False, copy: bool = False) -> None:
     """Alias for 'add'."""
+    logger.debug("Executing 'add' command.")
     add_utility(utility, copy, update=force)
 
 
@@ -106,6 +99,7 @@ def install(utility: Path, force: bool = False, copy: bool = False) -> None:
 @click.confirmation_option()
 def remove(utility: str) -> None:
     """Remove the specified utility from the user's utilities directory."""
+    logger.debug("Executing 'remove' command.")
     remove_utility(utility)
 
 
@@ -117,6 +111,7 @@ def remove(utility: str) -> None:
 @click.confirmation_option()
 def rm(utility: str) -> None:
     """Alias for 'remove' command."""
+    logger.debug("Executing 'remove' command.")
     remove_utility(utility)
 
 
@@ -128,8 +123,5 @@ def rm(utility: str) -> None:
 @click.confirmation_option()
 def uninstall(utility: str) -> None:
     """Alias for 'remove' command."""
+    logger.debug("Executing 'remove' command.")
     remove_utility(utility)
-
-
-def main() -> None:
-    print("Hello from utils!")
