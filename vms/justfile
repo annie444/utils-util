@@ -1,0 +1,67 @@
+bash-init := """
+if [ -n "${DEBUG:-}" ]; then
+  set -x
+fi
+set -euo pipefail
+"""
+
+default:
+  just --choose  --list-submodules vm
+
+list:
+  #!/usr/bin/env bash
+  {{ bash-init }}
+  FILES=$(find {{ source_directory() }} -name "*.yaml" | sort)
+  for FILE in $FILES; do
+    NAME=$(basename "$FILE" .yaml)
+    echo "$NAME"
+  done
+
+stop-all:
+  #!/usr/bin/env bash
+  {{ bash-init }}
+  for VM in $(limactl list | grep -i running | awk '{print $1}'); do
+    echo "Stopping VM: $VM"
+    limactl stop "$VM"
+  done
+
+start-all:
+  #!/usr/bin/env bash
+  {{ bash-init }}
+  declare -a VMS
+  VMS=()
+  FILES=$(find {{ source_directory() }} -name "*.yaml" | sort)
+  for FILE in $FILES; do
+    VMS+=($(basename "$FILE" .yaml))
+  done
+  for VM in $(limactl list | grep -i stopped | awk '{print $1}'); do
+    if ! [[ " ${VMS[@]} " =~ " ${VM} " ]]; then
+      continue
+    fi
+    echo "Starting VM: $VM"
+    limactl start "$VM"
+  done
+
+create vm:
+  limactl create --name {{ vm }} {{ source_directory() }}/{{ vm }}.yaml
+
+start vm:
+  #!/usr/bin/env bash
+  {{ bash-init }}
+  if [ "{{ vm }}" = "all" ]; then
+    just start-all
+  else
+    limactl start {{ vm }}
+  fi
+
+shell vm:
+  limactl shell {{ vm }}
+
+stop vm:
+  #!/usr/bin/env bash
+  {{ bash-init }}
+  if [ "{{ vm }}" = "all" ]; then
+    just stop-all
+  else
+    limactl stop {{ vm }}
+  fi

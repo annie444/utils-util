@@ -1,9 +1,16 @@
-from .cmds import list_cmd, add_utility, remove_utility
+from .cmds import (
+    list_cmd,
+    add_utility,
+    remove_utility,
+    UtilityType,
+    add_compiled_utility,
+)
 from .click import click
 from .log import get_level, LOG_FORMAT
 
 from pathlib import Path
 import logging
+from typing import Optional
 
 logging.basicConfig(level=get_level(), format=LOG_FORMAT)
 logger = logging.getLogger(__name__)
@@ -51,10 +58,23 @@ def ls() -> None:
     ),
 )
 @click.option(
+    "--compile",
+    type=click.Choice(
+        UtilityType.ls(),
+        case_sensitive=False,
+    ),
+    help="Optional. The type of utility to compile.",
+)
+@click.option(
     "--force", "-f", is_flag=True, help="Force overwrite if utility already exists."
 )
 @click.option("--copy", "-c", is_flag=True, help="Copy the file instead of move it.")
-def add(utility: Path, force: bool = False, copy: bool = False) -> None:
+def add(
+    utility: Path,
+    compile: Optional[str] = None,
+    force: bool = False,
+    copy: bool = False,
+) -> None:
     """Installs the specified utility to the user's utilities directory.
 
     This command will move the specified utility to the user's utilities
@@ -63,7 +83,16 @@ def add(utility: Path, force: bool = False, copy: bool = False) -> None:
     file is executable.
     """
     logger.debug("Executing 'add' command.")
-    add_utility(utility, copy, update=force)
+    if compile is not None:
+        logger.debug(f"Compiling utility of type: {compile}")
+        try:
+            compile = UtilityType(compile.strip().lower())
+        except ValueError as e:
+            logger.error(f"Invalid utility type: {compile}. Error: {e}")
+            raise click.BadParameter(f"Invalid utility type: {compile}.") from e
+        add_compiled_utility(utility, compile)
+    else:
+        add_utility(utility, copy, update=force)
 
 
 @utils.command(hidden=True, no_args_is_help=True)

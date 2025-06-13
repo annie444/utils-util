@@ -1,7 +1,7 @@
 import os
 import shutil
 from pathlib import Path
-from typing import Optional
+from typing import Any, ClassVar, Optional
 from utils.dir import get_utils_dir
 from utils.click import click
 from utils.log import get_level, LOG_FORMAT
@@ -120,8 +120,10 @@ class StrEnumUtil(StrEnum, metaclass=Meta):
     """Base class for string enumerations with custom __repr__ and __str__ methods."""
 
 
-class UtilityType(StrEnumUtil):
+class UtilityType(StrEnumUtil, click.ParamType):
     """Enumeration for utility types."""
+
+    name: ClassVar[str] = "UtilityType"
 
     RUST = "rust"
     GO = "go"
@@ -131,6 +133,20 @@ class UtilityType(StrEnumUtil):
     MAKE = "make"
     CMAKE = "cmake"
     AUTOCONF = "autoconf"
+
+    @classmethod
+    def convert(
+        cls, value: Any, param: Optional[click.Parameter], ctx: Optional[click.Context]
+    ) -> "UtilityType":
+        """Convert the value to a UtilityType."""
+        if isinstance(value, cls):
+            return value
+        try:
+            return cls(value.lower())
+        except ValueError:
+            raise click.BadParameter(
+                f"Invalid utility type: {value}. Supported types are: {cls.ls()}"
+            ) from None
 
 
 class Compilers(StrEnumUtil):
@@ -151,8 +167,8 @@ class CompilerCommand:
     """TypedDict for compiler command structure."""
 
     command: list[list[str]]
-    compiler: Compilers
     output: Optional[Path] = None
+    compiler: Compilers
 
 
 def get_compiler_install_cmd(compiler: Compilers) -> list[str]:
